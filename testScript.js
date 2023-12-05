@@ -77,7 +77,7 @@ const LearnerSubmissions = [
 ];
 
 function getLearnerData(course, ag, submissions) {
-  const result = [];
+  let result; //function_output
   try {
     //if true: Run the function
     if (course.id === ag.course_id) {
@@ -103,51 +103,86 @@ function getLearnerData(course, ag, submissions) {
 
         const submissionDate = new Date(sub.submission.submitted_at).getTime();
         const dueDate = dueDates[sub.assignment_id];
-        // Excluding assignment not yet due from the results and the average.
+
+        // Excluding assignment not yet due from the results and the averAssignmentGroupe.
         if (dueDate <= Date.now()) {
           if (submissionDate > dueDate) {
             // Deduct 10% if submission is late
             learnerResult.scores[sub.assignment_id] =
-              Math.max((sub.submission.score - 0.1 *assignmentPoints[sub.assignment_id]),0 ) 
+              Math.max(
+                sub.submission.score -
+                  0.1 * assignmentPoints[sub.assignment_id],
+                0
+              ) / assignmentPoints[sub.assignment_id];
+            learnerResult[sub.assignment_id] = Math.max(
+              sub.submission.score - 0.1 * assignmentPoints[sub.assignment_id],
+              0
+            );
           } else {
             // Include score without deduction
             learnerResult.scores[sub.assignment_id] =
-              sub.submission.score 
+              sub.submission.score / assignmentPoints[sub.assignment_id];
+            learnerResult[sub.assignment_id] = sub.submission.score;
           }
           learnerResult.total = assignmentPoints[sub.assignment_id];
           learnerResults.push(learnerResult);
         }
       }); //expected learnerResults:
-      // [{id: 125 scores: {1: 0.94}}
-      //  {id: 125 scores: {2: 1}}
-      //  {id: 132 scores: {1: 0.78}}
-      //  {id: 132 scores: {2: 0.84}}]
+      // [{1: 47, id: 125, scores:{1:47/50}, total: 50}
+      //  {2: 150, id: 125, scores:{1:150/150}, total: 150}
+      //  {1: 39, id: 132, scores:{1:39/50}, total: 50}
+      //  {2: 125, id: 132, scores:{1:125/50}, total: 150}]
 
-      //Grouping scores by learnerId
-      learnerResults.reduce((groupedScors, learner) => {
-        const id = learner.id
-        if(!groupedScors[id]) {
-          groupedScors[id]={id: learner.id, ...learner.scores
+      console.log(learnerResults); // LearnerResults checked
+
+      const formattedResults = {};
+
+      // Iterating through the data array
+      learnerResults.forEach((obj) => {
+        const { id } = obj;
+        const scoreKey = Object.keys(obj).find(
+          (key) => typeof obj[key] === "number"
+        ); // Get the key containing the score
+        const score = obj[scoreKey]; // Get the score value
+
+        if (!formattedResults[id]) {
+          formattedResults[id] = { id, avg: 0, totalScore: 0, total: 0 }; // Initialize for the ID if it doesn't exist
         }
-      }
-      }, {})
-      console.log()
-      // Calculate weighted averages
-      learnerResults.forEach((learnerResult) => {
-        const assignmentScores = learnerResult.scores;
-        const totalPoints = Object.values(assignmentScores).reduce(
-          (total, score) => total + score,
-          0
-        );
-        const weightedAverage =
-          (totalPoints * 100) / Object.keys(assignmentScores).length;
-        // Push formatted result for each learner
-        result.push({
-          id: learnerResult.id,
-          avg: weightedAverage,
-          ...learnerResult.scores, // Include assignment scores
-        });
+        const percentScore = score / obj.total;
+        formattedResults[id][scoreKey] = Number(percentScore.toFixed(2)); // Set the score as "score/total"
+        formattedResults[id].totalScore += score;
+        formattedResults[id].total += obj.total; // Accumulate the total
+
+        //Computing the weighted average score
+        formattedResults[id].avg =
+          formattedResults[id].totalScore / formattedResults[id].total;
       });
+      const output = Object.values(formattedResults); //function_output with desired results
+      //console.log(output);//passed testing result and the expected results:
+
+      // (2) [{1: 0.94,
+      //    2: 1,
+      //    id: 125,
+      //    avg: 0.985,
+      //    totalScore: 197,
+      //    total: 200
+      //      },
+      //      {1: 0.78,
+      //       2: 0.83,
+      //       id: 132,
+      //       avg: 0.82,
+      //       totalScore: 164,
+      //       total: 200
+      //     }
+
+      //]
+      result = [...output];
+      result.forEach((item) => {
+        delete item.total;
+        delete item.totalScore
+      })
+      
+      
     } else {
       throw "input was invalid: Course information does not match the Assignment group";
     }
@@ -157,26 +192,14 @@ function getLearnerData(course, ag, submissions) {
     console.log("Validation processed!");
   }
 
-  result.reduce((learner, element) => {
-    const id = element.learner_id;
-    if (learner[id] == null) {
-      learner[id] = {
-        id: id,
-        avg: element.avg
-    
-      };
-    }
-    return learnerAverage;
-  }, {});
-
-
   return result;
 }
 
 const results = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
 console.log(results);
-// The desired result:
-// const result = [
+
+//-------------// The desired result:\\--------------------
+// [
 //   {
 //     id: 125,
 //     avg: 0.985, // (47 + 150) / (50 + 150)
