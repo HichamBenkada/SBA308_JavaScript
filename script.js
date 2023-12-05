@@ -157,6 +157,9 @@ function getLearnerData(course, ag, submissions) {
         formattedResults[id].totalScore += score;
         formattedResults[id].total += obj.total; // Accumulate the total
 
+        if(!formattedResults[id].total){
+            throw new error(' Total points possible is 0 You cannot divide by zero.')
+        } 
         //Computing the weighted average score
         formattedResults[id].avg =
           formattedResults[id].totalScore / formattedResults[id].total;
