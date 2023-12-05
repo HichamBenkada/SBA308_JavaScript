@@ -91,10 +91,12 @@ An array of LearnerSubmission objects, which each look like this:
 
 - Iterate through the learner submissions and calculate the score based on the logic "isLate" and append "LearnerResults". Also includes data verification and validations throughout the code conditionals to prevent potential errors within the input data. What if points_possible is 0? You cannot divide by zero. 
 
-What if a value that you are expecting to be a number is instead a string? 
+- Considere "What if" a value that you are expecting to be a number is instead a string? 
 
 - If an assignment is not yet due, not to be included in the results or the average computation. 
 
 - Deducting 10 percent of the total points possible from their score for that assignment if submission is late.
 
+-LearnerResults iteration to create the desired output formate
+- Final result is tested to be working acuratly 
 ##### Thank you for your time if you leave me feedback to make my coding better

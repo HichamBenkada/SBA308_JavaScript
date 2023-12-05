@@ -95,6 +95,7 @@ function getLearnerData(course, ag, submissions) {
       /**Returns the number of milliseconds elapsed since the midnight at the beginning of January 1, 1970
         UTC.*/
 
+
       // Process learner submissions
       const learnerResults = [];
       submissions.forEach((sub) => {
@@ -111,7 +112,7 @@ function getLearnerData(course, ag, submissions) {
         //a boolean to filter out assignmnets not due yet
         const isAlreadyDue = dueDate <= Date.now();
 
-        // Excluding assignment not yet due from the results and the averAssignmentGroupe.
+        // Excluding assignment not yet due from the results and the average calculation.
         if (isAlreadyDue) {
           if (isLate) {
             // Deduct 10% if submission is late
@@ -125,8 +126,8 @@ function getLearnerData(course, ag, submissions) {
           } else {
             // Include score without deduction
             learnerResult.scores[sub.assignment_id] =
-              sub.submission.score / assignmentPoints[sub.assignment_id];
-            learnerResult[sub.assignment_id] = sub.submission.score;
+              Number(sub.submission.score) / Number(assignmentPoints[sub.assignment_id]);
+            learnerResult[sub.assignment_id] = Number(sub.submission.score);
           }
           learnerResult.total = assignmentPoints[sub.assignment_id];
           learnerResults.push(learnerResult);
@@ -169,6 +170,7 @@ function getLearnerData(course, ag, submissions) {
       // [{1: 0.94, 2: 1, id: 125, avg: 0.985, totalScore: 197, total: 200},
       //  {1: 0.78, 2: 0.83, id: 132, avg: 0.82, totalScore: 164, total: 200}]
 
+      //final output modification
       result = [...output];
       result.forEach((item) => {
         delete item.total;
